@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { theme } from "./theme";
 
 export const RUCHIO_TAGLINE = "Smart Kitchen Companion";
@@ -108,6 +109,44 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
   return <Text style={styles.sectionLabel}>{children}</Text>;
 }
 
+export function Stars({
+  value,
+  size = 16,
+  onChange,
+  testIDPrefix,
+}: {
+  value: number;
+  size?: number;
+  onChange?: (n: number) => void;
+  testIDPrefix?: string;
+}) {
+  return (
+    <View style={{ flexDirection: "row", gap: onChange ? 8 : 3 }}>
+      {[1, 2, 3, 4, 5].map((n) => {
+        const filled = n <= value;
+        const icon = (
+          <Ionicons
+            name={filled ? "star" : "star-outline"}
+            size={size}
+            color={filled ? theme.colors.brand : theme.colors.onSurfaceFaint}
+          />
+        );
+        if (!onChange) return <View key={n}>{icon}</View>;
+        return (
+          <Pressable
+            key={n}
+            testID={testIDPrefix ? `${testIDPrefix}-${n}` : undefined}
+            hitSlop={6}
+            onPress={() => onChange(n)}
+          >
+            {icon}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   chip: {
     height: 36,
@@ -142,11 +181,16 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.brand,
     paddingHorizontal: 20,
-    shadowColor: theme.colors.brand,
-    shadowOpacity: 0.28,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    ...Platform.select({
+      web: { boxShadow: "0 8px 14px rgba(79,70,229,0.28)" },
+      default: {
+        shadowColor: theme.colors.brand,
+        shadowOpacity: 0.28,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 4,
+      },
+    }),
   },
   primaryBtnText: {
     fontFamily: "GeistBold",

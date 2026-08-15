@@ -6,6 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useKeepAwake } from "expo-keep-awake";
 import * as Haptics from "expo-haptics";
 
+import { theme } from "@/src/theme";
+import { ALL_RECIPES, Recipe } from "@/src/data/recipes";
+
 function useKeepAwakeSafe() {
   // expo-keep-awake uses the browser Wake Lock API on web which requires
   // user gesture + secure context and throws in many previews. Only enable on native.
@@ -13,9 +16,6 @@ function useKeepAwakeSafe() {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useKeepAwake();
 }
-
-import { theme } from "@/src/theme";
-import { ALL_RECIPES, Recipe } from "@/src/data/recipes";
 
 function fmt(sec: number) {
   const m = Math.floor(sec / 60);

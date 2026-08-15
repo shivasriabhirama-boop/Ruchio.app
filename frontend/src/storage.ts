@@ -20,6 +20,12 @@ export type MenuDay = {
   recipeId: string | null;
 };
 
+export type Rating = {
+  stars: number; // 1-5
+  note: string;
+  updatedAt: string;
+};
+
 const KEYS = {
   profile: "ruchio.profile",
   pantry: "ruchio.pantry",
@@ -28,6 +34,7 @@ const KEYS = {
   shopping: "ruchio.shopping",
   photos: "ruchio.photos",
   menu: "ruchio.menu",
+  ratings: "ruchio.ratings",
 };
 
 export const defaultProfile: Profile = {
@@ -74,6 +81,10 @@ export const storage = {
   // Weekly menu
   getMenu: () => readJSON<MenuDay[]>(KEYS.menu, []),
   setMenu: (m: MenuDay[]) => writeJSON(KEYS.menu, m),
+
+  // Recipe ratings (recipeId -> Rating)
+  getRatings: () => readJSON<Record<string, Rating>>(KEYS.ratings, {}),
+  setRatings: (r: Record<string, Rating>) => writeJSON(KEYS.ratings, r),
 };
 
 export function mergeShopping(existing: ShoppingItem[], names: string[]): ShoppingItem[] {

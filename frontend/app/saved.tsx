@@ -9,18 +9,26 @@ import * as Haptics from "expo-haptics";
 import { theme } from "@/src/theme";
 import { ALL_RECIPES, Recipe } from "@/src/data/recipes";
 import { storage } from "@/src/storage";
+import { Stars } from "@/src/ui";
 
 export default function Saved() {
   const router = useRouter();
   const [favs, setFavs] = useState<Recipe[]>([]);
   const [photos, setPhotos] = useState<Record<string, string>>({});
+  const [ratings, setRatings] = useState<Record<string, { stars: number }>>({});
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([storage.getFavorites(), storage.getPhotos()]).then(([ids, ph]) => {
-        setFavs(ALL_RECIPES.filter((r) => ids.includes(r.id)));
-        setPhotos(ph);
-      });
+      Promise.all([storage.getFavorites(), storage.getPhotos(), storage.getRatings()]).then(
+        ([ids, ph, rt]) => {
+          const list = ALL_RECIPES.filter((r) => ids.includes(r.id)).sort(
+            (a, b) => (rt[b.id]?.stars || 0) - (rt[a.id]?.stars || 0)
+          );
+          setFavs(list);
+          setPhotos(ph);
+          setRatings(rt);
+        }
+      );
     }, [])
   );
 
@@ -76,6 +84,11 @@ export default function Saved() {
                   <Text style={styles.rowSub} numberOfLines={1}>
                     {r.region} • {r.time} min • {r.spice}
                   </Text>
+                  {(ratings[r.id]?.stars || 0) > 0 && (
+                    <View style={{ marginTop: 4 }}>
+                      <Stars value={ratings[r.id]?.stars || 0} size={12} />
+                    </View>
+                  )}
                 </View>
                 <Pressable testID={`saved-remove-${r.id}`} onPress={() => remove(r.id)} hitSlop={8} style={styles.removeBtn}>
                   <Ionicons name="heart" size={16} color={theme.colors.brand} />

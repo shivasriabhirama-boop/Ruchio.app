@@ -32,7 +32,11 @@ A premium mobile Expo app that recommends home-style Indian recipes based on the
 - Tabs (4): Discover, Planner (Weekly Menu), Pantry, Profile
 - Stack screens: /ai-chef (AI Chef), /shopping (Shopping List), /cook/[id] (Cook Mode), /saved, /recipe/[id]
 
-## Features added (v2 — 2026-08-15)
+## Features added (v3 — 2026-08-15)
+- **Recipe Ratings**: tap 1–5 stars + a note on any recipe (stored in `ruchio.ratings`). Ratings boost a dish's match score so favourites rise to the top of Discover; star badge shows on Discover cards; Saved list sorts highest-rated first and shows stars. Reusable `<Stars>` component in `src/ui.tsx`.
+- **Leftover Mode** (`/leftover`, opened from a Discover quick-action card): lists fast dishes (≤ 25 min, ≤ 4 ingredients, ≤ 1 missing) built from the current pantry — "You have everything" / "Just need X" with time pills. Discover AI Chef card became a 2-up quick-actions row (AI Chef + Leftover Mode).
+- `scoreRecipes` now takes a ratings arg (+14×stars boost); `leftoverMatches()` helper in `src/match.ts`.
+
 - **Shopping List** (`/shopping`): tickable + shareable; "Add N to shopping list" from a recipe's You-need items; Planner "add week's items". Stored in AsyncStorage.
 - **Cook Mode** (`/cook/[id]`): full-screen big step text, progress bar, per-step countdown timer (play/pause, ±1m, reset), keep-awake on native (web-guarded).
 - **Recipe Photos**: snap/pick a finished-dish photo (expo-image-picker + expo-file-system persist), shown on recipe detail + saved list. Native-only capture.

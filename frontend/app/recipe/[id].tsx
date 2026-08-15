@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Linking, TextInput } from "react-native";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -11,6 +11,7 @@ import { theme } from "@/src/theme";
 import { ALL_RECIPES, Recipe } from "@/src/data/recipes";
 import { storage, mergeShopping } from "@/src/storage";
 import { captureDishPhoto } from "@/src/photos";
+import { Stars } from "@/src/ui";
 
 export default function RecipeDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,16 +22,24 @@ export default function RecipeDetail() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [blocked, setBlocked] = useState(false);
+  const [stars, setStars] = useState(0);
+  const [note, setNote] = useState("");
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([storage.getPantry(), storage.getFavorites(), storage.getPhotos()]).then(
-        ([p, f, ph]) => {
-          setPantry(p);
-          setFav(f.includes(id!));
-          setPhoto(ph[id!] || null);
-        }
-      );
+      Promise.all([
+        storage.getPantry(),
+        storage.getFavorites(),
+        storage.getPhotos(),
+        storage.getRatings(),
+      ]).then(([p, f, ph, ratings]) => {
+        setPantry(p);
+        setFav(f.includes(id!));
+        setPhoto(ph[id!] || null);
+        const r = ratings[id!];
+        setStars(r?.stars || 0);
+        setNote(r?.note || "");
+      });
     }, [id])
   );
 
@@ -85,6 +94,32 @@ export default function RecipeDetail() {
       setPhoto(res.uri);
       showToast("Dish photo saved");
     }
+  };
+
+  const persistRating = async (nextStars: number, nextNote: string) => {
+    const ratings = await storage.getRatings();
+    if (nextStars === 0 && !nextNote.trim()) {
+      delete ratings[recipe.id];
+    } else {
+      ratings[recipe.id] = {
+        stars: nextStars,
+        note: nextNote,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+    await storage.setRatings(ratings);
+  };
+
+  const onRate = async (n: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setStars(n);
+    await persistRating(n, note);
+  };
+
+  const saveNote = async () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    await persistRating(stars, note);
+    showToast("Rating saved");
   };
 
   return (
@@ -156,6 +191,27 @@ export default function RecipeDetail() {
             )}
           </View>
 
+          {/* Rate this dish */}
+          <View style={styles.ratingBlock} testID="detail-rating">
+            <View style={styles.ratingHead}>
+              <Text style={[styles.section, { marginTop: 0, marginBottom: 0 }]}>Rate this dish</Text>
+              <Stars value={stars} size={26} onChange={onRate} testIDPrefix="detail-star" />
+            </View>
+            <TextInput
+              testID="detail-note-input"
+              style={styles.noteInput}
+              value={note}
+              onChangeText={setNote}
+              placeholder="Add a note (e.g. add extra chilli next time)"
+              placeholderTextColor={theme.colors.onSurfaceFaint}
+              multiline
+            />
+            <Pressable testID="detail-save-rating" onPress={saveNote} style={styles.saveNoteBtn}>
+              <Ionicons name="bookmark-outline" size={15} color={theme.colors.onBrand} />
+              <Text style={styles.saveNoteText}>{stars > 0 ? "Save rating" : "Save note"}</Text>
+            </Pressable>
+          </View>
+
           <Text style={styles.section}>Ingredients</Text>
           {have.length > 0 && (
             <View style={styles.groupBox}>
@@ -203,7 +259,7 @@ export default function RecipeDetail() {
       </SafeAreaView>
 
       {toast && (
-        <View style={styles.toast} pointerEvents="none">
+        <View style={[styles.toast, { pointerEvents: "none" }]}>
           <Ionicons name="checkmark-circle" size={16} color={theme.colors.brand} />
           <Text style={styles.toastText}>{toast}</Text>
         </View>
@@ -282,6 +338,44 @@ const styles = StyleSheet.create({
   },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   photoBlock: { marginBottom: 6 },
+  ratingBlock: {
+    marginTop: 8,
+    marginBottom: 6,
+    padding: 16,
+    borderRadius: theme.radius.lg,
+    backgroundColor: theme.colors.surface2,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  ratingHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  noteInput: {
+    minHeight: 64,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface3,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 12,
+    fontFamily: "Geist",
+    fontSize: 14,
+    color: theme.colors.onSurface,
+    textAlignVertical: "top",
+  },
+  saveNoteBtn: {
+    marginTop: 12,
+    height: 44,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.brand,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  saveNoteText: { fontFamily: "GeistBold", fontSize: 13, color: theme.colors.onBrand },
   photoWrap: { borderRadius: theme.radius.lg, overflow: "hidden", height: 200, borderWidth: 1, borderColor: theme.colors.border },
   photo: { width: "100%", height: "100%" },
   retake: {

@@ -116,7 +116,7 @@ export default function PantryScreen() {
       </View>
 
       {toast && (
-        <View style={styles.toast} pointerEvents="none">
+        <View style={[styles.toast, { pointerEvents: "none" }]}>
           <Ionicons name="checkmark-circle" size={16} color={theme.colors.brand} />
           <Text style={styles.toastText}>{toast}</Text>
         </View>

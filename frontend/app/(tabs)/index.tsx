@@ -19,7 +19,7 @@ import { theme } from "@/src/theme";
 import { MEAL_FILTERS } from "@/src/data/recipes";
 import { storage, Profile, defaultProfile } from "@/src/storage";
 import { scoreRecipes, Match } from "@/src/match";
-import { Wordmark, Chip } from "@/src/ui";
+import { Wordmark, Chip, Stars } from "@/src/ui";
 
 export default function Discover() {
   const router = useRouter();
@@ -27,20 +27,23 @@ export default function Discover() {
   const [pantry, setPantry] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [shoppingCount, setShoppingCount] = useState(0);
+  const [ratings, setRatings] = useState<Record<string, { stars: number; note: string }>>({});
   const [meal, setMeal] = useState<string>("All");
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const [p, pt, f, s] = await Promise.all([
+    const [p, pt, f, s, r] = await Promise.all([
       storage.getProfile(),
       storage.getPantry(),
       storage.getFavorites(),
       storage.getShopping(),
+      storage.getRatings(),
     ]);
     setProfile(p);
     setPantry(pt);
     setFavorites(f);
     setShoppingCount(s.filter((i) => !i.checked).length);
+    setRatings(r);
   }, []);
 
   useFocusEffect(
@@ -49,7 +52,10 @@ export default function Discover() {
     }, [load])
   );
 
-  const matches = useMemo(() => scoreRecipes(pantry, profile, meal), [pantry, profile, meal]);
+  const matches = useMemo(
+    () => scoreRecipes(pantry, profile, meal, ratings),
+    [pantry, profile, meal, ratings]
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -113,17 +119,27 @@ export default function Discover() {
               </Pressable>
             </View>
 
-            {/* AI Chef feature card */}
-            <Pressable testID="open-ai-chef" onPress={() => router.push("/ai-chef")} style={styles.aiCard}>
-              <View style={styles.aiIcon}>
-                <Ionicons name="sparkles" size={20} color={theme.colors.onBrand} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.aiTitle}>Ask the AI Chef</Text>
-                <Text style={styles.aiSub}>Invent a dish from your pantry</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={18} color={theme.colors.brand} />
-            </Pressable>
+            {/* Quick actions: AI Chef + Leftover Mode */}
+            <View style={styles.quickRow}>
+              <Pressable testID="open-ai-chef" onPress={() => router.push("/ai-chef")} style={styles.quickCard}>
+                <View style={styles.quickIcon}>
+                  <Ionicons name="sparkles" size={18} color={theme.colors.onBrand} />
+                </View>
+                <Text style={styles.quickTitle}>AI Chef</Text>
+                <Text style={styles.quickSub}>Invent a dish</Text>
+              </Pressable>
+              <Pressable
+                testID="open-leftover"
+                onPress={() => router.push("/leftover")}
+                style={[styles.quickCard, styles.quickCardAlt]}
+              >
+                <View style={[styles.quickIcon, { backgroundColor: theme.colors.onSurface }]}>
+                  <Ionicons name="flash" size={18} color="#FFF" />
+                </View>
+                <Text style={styles.quickTitle}>Leftover Mode</Text>
+                <Text style={styles.quickSub}>Fast, few items</Text>
+              </Pressable>
+            </View>
 
             {/* Surprise hero */}
             <Pressable testID="surprise-dish" onPress={surprise} style={styles.hero}>
@@ -192,6 +208,7 @@ export default function Discover() {
           <RecipeCard
             match={item}
             fav={favorites.includes(item.recipe.id)}
+            rating={ratings[item.recipe.id]?.stars || 0}
             onFav={() => toggleFav(item.recipe.id)}
             onOpen={() => router.push(`/recipe/${item.recipe.id}`)}
           />
@@ -211,11 +228,13 @@ export default function Discover() {
 function RecipeCard({
   match,
   fav,
+  rating,
   onFav,
   onOpen,
 }: {
   match: Match;
   fav: boolean;
+  rating: number;
   onFav: () => void;
   onOpen: () => void;
 }) {
@@ -243,6 +262,11 @@ function RecipeCard({
         </Pressable>
       </View>
       <View style={styles.cardBottom}>
+        {rating > 0 && (
+          <View style={styles.cardStars} testID={`card-rating-${match.recipe.id}`}>
+            <Stars value={rating} size={13} />
+          </View>
+        )}
         <Text style={styles.cardTitle} numberOfLines={2}>
           {match.recipe.name}
         </Text>
@@ -313,28 +337,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   badgeDotText: { fontFamily: "GeistBold", fontSize: 10, color: theme.colors.onBrand },
-  aiCard: {
-    marginHorizontal: 20,
-    marginBottom: 18,
+  quickRow: { flexDirection: "row", gap: 12, paddingHorizontal: 20, marginBottom: 18 },
+  quickCard: {
+    flex: 1,
     padding: 16,
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.brandTint,
     borderWidth: 1,
     borderColor: "#DAD8F7",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
+    gap: 4,
   },
-  aiIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+  quickCardAlt: {
+    backgroundColor: theme.colors.surface2,
+    borderColor: theme.colors.border,
+  },
+  quickIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: theme.colors.brand,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 8,
   },
-  aiTitle: { fontFamily: "FrauncesBold", fontSize: 18, color: theme.colors.onSurface, letterSpacing: -0.3 },
-  aiSub: { fontFamily: "Geist", fontSize: 13, color: theme.colors.onSurfaceMuted, marginTop: 2 },
+  quickTitle: { fontFamily: "FrauncesBold", fontSize: 17, color: theme.colors.onSurface, letterSpacing: -0.3 },
+  quickSub: { fontFamily: "Geist", fontSize: 12, color: theme.colors.onSurfaceMuted },
   hero: {
     height: 200,
     marginHorizontal: 20,
@@ -451,6 +478,15 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.25)",
   },
   cardBottom: { marginTop: "auto", padding: 18, gap: 8 },
+  cardStars: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: theme.radius.pill,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
   cardTitle: { fontFamily: "FrauncesBold", fontSize: 24, color: "#FFF", letterSpacing: -0.6, lineHeight: 27 },
   cardTagline: { fontFamily: "FrauncesItalic", fontSize: 13, color: "#DEDEDE" },
   metaRow: { flexDirection: "row", gap: 10, marginTop: 4 },
