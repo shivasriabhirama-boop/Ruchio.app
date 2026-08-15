@@ -1,0 +1,35 @@
+{
+  "summary": "Full E2E test of Ruchio (Smart Kitchen Companion) — backend (2 endpoints) + frontend Expo web preview flow (onboarding → discover → pantry → recipe detail → saved → AI Chef → profile). All 3 backend pytest tests pass. All 11 UI flow checkpoints in the review request work as designed: onboarding wordmark + hero + stepper + Get started, basics (name/age/eating-style), avoid step (skipped), quiz step, Discover with HELLO/AARAV + Ruchio wordmark + SURPRISE ME hero + meal filter chips + empty-pantry callout + 9 recipe cards with match badges, Pantry with categorised chips (Proteins/Grains/Vegetables & Herbs/Dairy & Fats/Spices/Others) + search bar + Save pantry FAB + 'Pantry saved' toast, Discover re-computes CLOSE MATCH for saved pantry, recipe card opens detail, fav toggles, header heart opens Saved list with 1 saved item, AI Chef shows AI CHEF badge + hero + vibe chips + 5 pantry items + Non-Veg + Improvise a dish → LLM response renders Chef's Special result card, Profile shows Retake onboarding quiz. AI Chef backend call via Gemini 3 flash preview via Emergent LLM key works and returns AIRecipe with all required fields.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "recipe-detail", "issues": ["Playwright inner_text scan did not find literal words 'Have' and 'Need' — labels may render slightly different (e.g. uppercase eyebrows or split copy). Not a functional bug; visually verify labels match spec ('Have' / 'Need') if you want exact copy."]}
+    ],
+    "react_native_issues": [
+      {"component": "global styles", "issue": "Console warning: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' — RN Web deprecation. Cosmetic only, does not break rendering."}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_ruchio_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Optional: replace legacy shadowColor/shadowOffset/shadowRadius/shadowOpacity style props with boxShadow to remove RN-Web deprecation warning.",
+    "Optional: verify recipe detail actually shows the words 'Have' and 'Need' as section labels (spec wording) — screenshot check may confirm."
+  ],
+  "critical_code_review_comments": [
+    "server.py: LLM JSON parsing is defensive (code-fence stripping + json.loads with fallback) — good.",
+    "server.py: excludes MongoDB (no DB used in current server) — no _id serialization issue.",
+    "AsyncStorage on web maps to localStorage — onboarding persistence works; testing agents must clear storage between end-to-end runs (done in this iteration by running full flow in one session).",
+    "All interactive elements have testIDs; naming is consistent (onboarding-next, pantry-chip-*, pantry-save, recipe-card-*, fav-*, detail-*, ai-chef-generate/result/error, retake-onboarding, open-saved)."
+  ],
+  "updated_files": ["/app/backend/tests/test_ruchio_api.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None. AI Chef uses live Emergent LLM key; test data (Aarav/28/Non-Veg pantry of 5 items) created only in in-browser localStorage during the run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend base URL from frontend/.env EXPO_PUBLIC_BACKEND_URL. All flows validated. If you rerun the UI script, do the whole onboarding→pantry→discover→detail→saved→ai-chef→profile in ONE browser session — AsyncStorage/localStorage resets per new browser context. Correct testIDs are onboarding-name-input / onboarding-age-input / onboarding-habit-<Non-Veg|Veg|Vegan|Jain> / onboarding-avoid-<i> / onboarding-quiz-<opt> / onboarding-next (used for both continue and finish). Recipe cards: recipe-card-<id>. Fav on card: fav-<id>. Detail: detail-back, detail-fav. Saved list: saved-item-<id>, saved-remove-<id>, saved-back. Discover header heart: open-saved. AI Chef: ai-chef-freeform, craving-<name>, ai-chef-generate, ai-chef-result, ai-chef-error. Profile: profile-name, profile-age, profile-habit-*, profile-avoid-*, toggle-avoid, retake-onboarding, stat-<label>.",
+  "rca_of_issue": "N/A — no functional issues found."
+}

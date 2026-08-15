@@ -1,0 +1,183 @@
+{
+  "app_name": "RUCHIO — Smart Kitchen Companion",
+  "personality": "6 Glass / Luxe DARK",
+  "personality_one_liner": "A cinematic, deeply tactile culinary experience that frames rich food photography with elegant glass surfaces and warm saffron accents.",
+  "color": {
+    "surface": "#0F0F0F",
+    "onSurface": "#FFFFFF",
+    "surfaceSecondary": "#1A1A1A",
+    "onSurfaceSecondary": "#E0E0E0",
+    "surfaceTertiary": "#252525",
+    "onSurfaceTertiary": "#BDBDBD",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#0F0F0F",
+    "brand": "#FF9F1C",
+    "brandPrimary": "#FF9F1C",
+    "onBrandPrimary": "#1A1200",
+    "brandSecondary": "#F27A1A",
+    "onBrandSecondary": "#FFFFFF",
+    "brandTertiary": "#422A0A",
+    "onBrandTertiary": "#FFDFB0",
+    "success": "#2E7D32",
+    "onSuccess": "#E8F5E9",
+    "warning": "#F57F17",
+    "onWarning": "#FFFDE7",
+    "error": "#D32F2F",
+    "onError": "#FFEBEE",
+    "info": "#1976D2",
+    "onInfo": "#E3F2FD",
+    "border": "#2A2A2A",
+    "borderStrong": "#4A4A4A",
+    "divider": "#202020"
+  },
+  "typography": {
+    "displayFontFamily": "Fraunces",
+    "textFontFamily": "Geist",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous, editorial spacing. Ensure whitespace emphasizes content; avoid dense packing.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": 0,
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use heavy glass on the bottom tab bar and sticky headers over scrolling content.",
+      "Apply frosted glass overlay to featured recipe cards sitting on a branded backdrop.",
+      "Add glass to the primary Floating Action Button (FAB).",
+      "Pair blur with a translucent tinted base (≥75% surface) underneath to guarantee contrast."
+    ],
+    "dont's": [
+      "Do not blur standard form fields or text inputs.",
+      "Never stack more than 2 blurred surfaces simultaneously.",
+      "Avoid glass on dense setting lists without background imagery."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Onboarding & Quiz",
+      "purpose": "A cinematic entry flow capturing user preferences and craving data.",
+      "states": {
+        "loading": "Centered dark brandPrimary spinner over dark glass.",
+        "empty": "N/A",
+        "error": "Glassy toast positioned at the bottom."
+      },
+      "layout": "Full-bleed background image with a vertical 3-stop gradient scrim (bottom 70% opacity surfaceInverse, text is onSurfaceInverse). Oversized Fraunces typography for the 'RUCHIO' brand wordmark and quiz questions. Form choices are glass pills."
+    },
+    {
+      "name": "Discover Feed",
+      "purpose": "A luxurious recipe feed personalized by pantry matches.",
+      "states": {
+        "loading": "Staggered skeleton cards in surfaceTertiary with a subtle pulse.",
+        "empty": "Illustration of an empty plate with a subtle brandTertiary tint, asking to add ingredients.",
+        "error": "Centered glass card with 'Refresh Matches' CTA."
+      },
+      "layout": "Sticky glass header with a horizontal scrolling chip row for filters. Vertical masonry or large stacked cards for recipes. Featured cards use full-bleed food imagery with gradient-to-dark scrim, showcasing match badges (Perfect/Close) as top-left pills."
+    },
+    {
+      "name": "Pantry",
+      "purpose": "An elegant, multi-select inventory manager.",
+      "states": {
+        "loading": "Spinner over dark ingredients background.",
+        "empty": "Text: 'Your pantry is bare.' with a CTA to add essentials.",
+        "error": "Error toast."
+      },
+      "layout": "Cinematic header photo of raw ingredients fading into the UI. Ingredients listed as selectable chips inside flexible wrap containers or categorized rows. Checked states use brandPrimary borderStrong and subtle surface tint."
+    },
+    {
+      "name": "Recipe Detail",
+      "purpose": "Immersive, step-by-step cooking guide.",
+      "states": {
+        "loading": "Image skeleton header.",
+        "empty": "N/A",
+        "error": "Error text centered."
+      },
+      "layout": "Full-bleed hero food image fading into the content via scrim. Ingredients and steps are displayed in elegant, well-spaced editorial blocks. A sticky bottom CTA to 'Start Cooking' or a Floating Action Button for 'Favorite/Save' over glass."
+    },
+    {
+      "name": "AI Chef",
+      "purpose": "A magical, generative feature crafting custom dishes from available ingredients.",
+      "states": {
+        "loading": "Cinematic blurred animation simulating 'thinking', layered with culinary terms.",
+        "empty": "N/A",
+        "error": "Retry generation button."
+      },
+      "layout": "Centered layout with an abstract, moody futuristic cooking visual. Oversized display typography and a prominent glowing brandPrimary action button. Input fields are translucent surfaceTertiary."
+    },
+    {
+      "name": "Profile",
+      "purpose": "Minimalist settings and preference management.",
+      "states": {
+        "loading": "Skeleton list.",
+        "empty": "N/A",
+        "error": "Retry loading profile."
+      },
+      "layout": "List-based layout. Each row uses a brandTertiary tinted icon container on the left, paired with Geist text. Avoid dense dashboard clutter."
+    }
+  ],
+  "images": {
+    "onboarding_bg": {
+      "url": "https://images.unsplash.com/photo-1610012370944-e822e8bb91c5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDN8MHwxfHNlYXJjaHw0fHxkYXJrJTIwbW9vZHklMjBpbmRpYW4lMjBmb29kJTIwcGhvdG9ncmFwaHklMjBzYWZmcm9uJTIwc3BpY2VzfGVufDB8fHx8MTc4Njc4MTMyOXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Dark moody saffron spices scattered."
+    },
+    "pantry_hero": {
+      "url": "https://images.unsplash.com/photo-1553025934-296397db4010?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBjb29raW5nJTIwaW5ncmVkaWVudHMlMjBzcGljZXMlMjBkYXJrJTIwZm9vZCUyMHBob3RvZ3JhcGh5fGVufDB8fHx8MTc4Njc4MTMzOXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Indian cooking ingredients and spices on dark wood."
+    },
+    "ai_chef_bg": {
+      "url": "https://images.unsplash.com/photo-1621494547944-5ddbc84514b2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzV8MHwxfHNlYXJjaHwxfHxhaSUyMHJvYm90JTIwY2hlZiUyMGNvb2tpbmclMjBmb29kJTIwZGFyayUyMG1vb2R5fGVufDB8fHx8MTc4Njc4MTMyOXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Black frying pan with smoke on stove."
+    }
+  },
+  "haptics": {
+    "events": {
+      "onPress_primary_button": "impactMedium",
+      "onPress_tab_item": "selection",
+      "onToggle_pantry_chip": "impactLight",
+      "onFavorite_toggle": "notificationSuccess",
+      "onAI_Chef_generate": "impactHeavy"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the Glass/Luxe Dark personality. Do not use generic grey cards. Use #1A1A1A for secondary surfaces with 0.5pt #2A2A2A borders.",
+    "The branding 'RUCHIO' must be rendered exclusively in the display font (Fraunces) to exude a premium editorial feel. Avoid Google Fonts package, use expo-font to load local TTF/OTF.",
+    "Implement a mandatory 3-stop vertical gradient scrim on all hero image banners (transparent -> 20% surfaceInverse -> 70%+ surfaceInverse) before overlaying any text to guarantee WCAG contrast.",
+    "Make use of blurred glassmorphism via expo-blur/expo-glass-effect strictly for the bottom tab bar, sticky headers, and FABs. Ensure glass overlaps scrolling content.",
+    "In the Discover Feed, highlight match scoring (Perfect / Close / Other) using semantic badges or pills mapped to brandTertiary/onBrandTertiary colors.",
+    "Ensure large touch targets (≥ 44x44pt) via hitSlop, and wrap all interactive components in Pressable, never TouchableOpacity.",
+    "Add 'Start Cooking' sticky primary CTAs at the bottom inside KeyboardAvoidingView with safe-area clearance."
+  ]
+}
