@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 2 — full E2E test of Ruchio light-theme redesign (cream/indigo/white/black) + 4 new features (Shopping List, Cook Mode, Recipe Photos, Weekly Menu). Backend: 3/3 pytest tests pass (GET /api/ health, POST /api/ai-chef success w/ 5-item pantry via Gemini via Emergent LLM key, POST /api/ai-chef empty-pantry -> 400). Frontend: complete onboarding -> Discover (Ruchio wordmark + Hello,Aarav + cart+heart headers + Ask the AI Chef card + SURPRISE ME hero + meal chips + recipe cards with match badges) -> 4 bottom tabs (Discover/Planner/Pantry/Profile) confirmed with indigo active color -> Pantry search + chip selection for Chicken/Rice/Salt/Onion/Ghee + Save -> 'Pantry saved' toast -> Recipe Detail (detail-back/fav, Your dish photo section with detail-photo-camera+detail-photo-gallery buttons, You have/You need ingredient split, detail-add-shopping button, numbered steps, sticky start-cooking) -> Shopping List (open-shopping opens screen, shopping-input+shopping-add adds items, shopping-toggle-<id> toggles + strike-through, shopping-remove-<id>, shopping-share, shopping-clear-checked appears after any check) -> Cook Mode (cook-timer 5:00, cook-timer-toggle actually decrements timer, cook-timer-minus/plus/reset all present & functional, cook-next advances through all N steps, cook-finish appears on last step and returns to recipe detail, cook-close works) -> Planner tab (planner-generate initially, generates 7 day cards Mon-Sun each with planner-day-<Day> + planner-shuffle-<Day> + planner-open-<Day> opens recipe detail, planner-add-shopping and planner-regenerate present) -> AI Chef stack screen via open-ai-chef (ai-back, craving-* chips, ai-chef-freeform, ai-chef-generate -> live LLM returns ai-chef-result card) -> Profile (profile-name/age editable, profile-habit-* chips, toggle-avoid + profile-avoid-*, stat-Saved/stat-Pantry/stat-List, retake-onboarding). ONE ISSUE FOUND & FIXED: expo-keep-awake's useKeepAwake() threw an uncaught 'Wake Lock permission request denied' error on Cook screen on the web preview which surfaced as a LogBox red overlay that blocked interaction. Wrapped in a Platform.OS !== 'web' guard (useKeepAwakeSafe) in /app/frontend/app/cook/[id].tsx — Cook mode now works cleanly on web preview and remains a keep-awake screen on native. Deprecated packages detected: expo-av is NOT used; only useKeepAwake needed a web guard.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "expo-keep-awake / cook screen", "issue": "useKeepAwake() throws uncaught 'Wake Lock permission request denied' on web preview causing a LogBox red overlay that blocks Cook mode interactions. Fixed with Platform.OS==='web' guard. Reference: /app/frontend/app/cook/[id].tsx:19"},
+      {"component": "global styles", "issue": "Console warning: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' — RN Web deprecation, cosmetic, does not break rendering."},
+      {"component": "toast overlay in recipe detail (shopping toast)", "issue": "pointerEvents deprecation warning: 'props.pointerEvents is deprecated. Use style.pointerEvents' — cosmetic only."}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_ruchio_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "OPTIONAL: replace legacy shadowColor/shadowOffset/shadowRadius/shadowOpacity with boxShadow across surfaces to silence RN-Web deprecation warnings.",
+    "OPTIONAL: replace <View pointerEvents='none'> with style={{pointerEvents:'none'}} on toast overlays (e.g. planner/pantry/discover) to silence pointerEvents deprecation warning.",
+    "OPTIONAL: verify recipe-photo camera/gallery flow on a native build (expo-image-picker + expo-file-system) — buttons render fine and don't crash on web, but actual capture is native-only."
+  ],
+  "critical_code_review_comments": [
+    "server.py: no DB; LLM JSON parsing is defensive (fence strip + first { .. } slice + json.loads); uses Emergent LLM key via emergentintegrations — no Mongo _id serialization concern.",
+    "storage.ts: all persistence is AsyncStorage; ids for shopping items are stable (name-based via mergeShopping) — good.",
+    "cook/[id].tsx: useKeepAwake() previously called unconditionally which broke web preview; now Platform-guarded.",
+    "All 4 new features carry kebab-case testIDs exactly as spec (shopping-*, cook-*, planner-*, detail-photo-*, detail-add-shopping, open-shopping, open-ai-chef). AI Chef is a stack screen (has ai-back and no bottom tab), matches spec.",
+    "recipe/[id].tsx: photo section renders 'Take a photo'/'Gallery' buttons with graceful permission fallback via detail-open-settings — matches native flow."
+  ],
+  "updated_files": ["/app/frontend/app/cook/[id].tsx"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None persisted server-side. In-browser localStorage seeded during test run: profile {name:Aarav, age:28, habit:Non-Veg}, pantry [Chicken,Rice,Salt,Onion,Ghee], generated weekly menu, and shopping items via recipe/planner add.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend base URL from frontend/.env EXPO_PUBLIC_BACKEND_URL. 4 bottom tabs are Discover/Planner/Pantry/Profile (AI Chef is a stack screen at /ai-chef, opened via Discover card testID=open-ai-chef). Shopping is a stack screen at /shopping opened via Discover header testID=open-shopping. Cook is /cook/[id] opened via recipe-detail testID=start-cooking. Every interactive element uses kebab-case testID. IMPORTANT: onboarding-next is used for every advance button (welcome/basics/avoid/quiz) — advance step-by-step. Do the entire flow in ONE browser session; localStorage=AsyncStorage on web. Cook mode's useKeepAwake is now Platform-guarded, so no more Wake Lock red screen on web preview. AI Chef result may take 6-20s (live Gemini via Emergent LLM key) — sleep at least 15s after clicking ai-chef-generate before checking for ai-chef-result / ai-chef-error.",
+  "rca_of_issue": "Cook Mode red-screen RCA: expo-keep-awake's useKeepAwake() invokes the browser Wake Lock API (navigator.wakeLock.request('screen')) when running on the web target. On the emergent preview the browser rejects the request outside of a user-gesture / secure-context handshake, and the promise rejection propagates as an uncaught error caught by RN LogBox — producing a red 'Wake Lock permission request denied' modal that overlays the whole Cook screen and blocks taps. Mitigation applied: added a Platform.OS==='web' short-circuit hook (useKeepAwakeSafe) so useKeepAwake is only invoked on iOS/Android where it works. Verified post-fix by re-running the full onboarding->recipe->cook flow: no red overlay, cook-timer decrements from 5:00, reset restores 5:00, next progresses through all steps, cook-finish appears on last step and returns to recipe detail."
+}

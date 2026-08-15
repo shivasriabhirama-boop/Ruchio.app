@@ -1,6 +1,5 @@
 import { Tabs } from "expo-router";
 import { StyleSheet, View, Platform } from "react-native";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -21,12 +20,7 @@ export default function TabsLayout() {
           marginBottom: 4,
         },
         tabBarStyle: styles.tabBar,
-        tabBarBackground: () => (
-          <View style={StyleSheet.absoluteFill}>
-            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-            <View style={styles.tabBarBg} />
-          </View>
-        ),
+        tabBarBackground: () => <View style={styles.tabBarBg} />,
       }}
       screenListeners={{
         tabPress: () => {
@@ -39,11 +33,16 @@ export default function TabsLayout() {
         options={{
           title: "Discover",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "flame" : "flame-outline"}
-              size={22}
-              color={color}
-            />
+            <Ionicons name={focused ? "compass" : "compass-outline"} size={23} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="planner"
+        options={{
+          title: "Planner",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "calendar" : "calendar-outline"} size={22} color={color} />
           ),
         }}
       />
@@ -53,15 +52,6 @@ export default function TabsLayout() {
           title: "Pantry",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "basket" : "basket-outline"} size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="ai-chef"
-        options={{
-          title: "AI Chef",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "sparkles" : "sparkles-outline"} size={22} color={color} />
           ),
         }}
       />
@@ -83,23 +73,23 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
-    bottom: Platform.OS === "ios" ? 22 : 16,
-    height: 68,
-    borderRadius: 24,
+    bottom: Platform.OS === "ios" ? 24 : 16,
+    height: 66,
+    borderRadius: 22,
     borderTopWidth: 0,
     borderWidth: 1,
     borderColor: theme.colors.border,
     backgroundColor: "transparent",
     overflow: "hidden",
     paddingTop: 8,
-    elevation: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+    shadowColor: "#3A2E12",
+    shadowOpacity: 0.14,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
   },
   tabBarBg: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(20,20,20,0.75)",
+    backgroundColor: theme.colors.surface2,
   },
 });

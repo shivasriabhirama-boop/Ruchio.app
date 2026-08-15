@@ -10,15 +10,20 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.emergent.ruchiouirefresh.ir6nwo"
+      "bundleIdentifier": "com.emergent.ruchiouirefresh.ir6nwo",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Snap a photo of your finished dish",
+        "NSPhotoLibraryUsageDescription": "Attach a dish photo from your gallery"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#F4EFE6"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.emergent.ruchiouirefresh.ir6nwo"
+      "package": "com.emergent.ruchiouirefresh.ir6nwo",
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
     },
     "web": {
       "bundler": "metro",
@@ -33,7 +38,7 @@
           "image": "./assets/images/splash-image.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#F4EFE6"
         }
       ]
     ],

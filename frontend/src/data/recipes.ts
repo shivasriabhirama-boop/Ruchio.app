@@ -211,4 +211,4 @@ export const ALL_RECIPES: Recipe[] = [
   },
 ];
 
-export const MEAL_FILTERS: Array<Recipe["meal"] | "All"> = ["All", "Breakfast", "Lunch", "Dinner", "Snack"];
+export const MEAL_FILTERS: (Recipe["meal"] | "All")[] = ["All", "Breakfast", "Lunch", "Dinner", "Snack"];

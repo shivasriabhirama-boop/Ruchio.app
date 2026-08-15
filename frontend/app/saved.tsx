@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -14,11 +13,13 @@ import { storage } from "@/src/storage";
 export default function Saved() {
   const router = useRouter();
   const [favs, setFavs] = useState<Recipe[]>([]);
+  const [photos, setPhotos] = useState<Record<string, string>>({});
 
   useFocusEffect(
     useCallback(() => {
-      storage.getFavorites().then((ids) => {
+      Promise.all([storage.getFavorites(), storage.getPhotos()]).then(([ids, ph]) => {
         setFavs(ALL_RECIPES.filter((r) => ids.includes(r.id)));
+        setPhotos(ph);
       });
     }, [])
   );
@@ -34,12 +35,7 @@ export default function Saved() {
     <SafeAreaView style={styles.root} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
-        <Pressable
-          testID="saved-back"
-          onPress={() => router.back()}
-          hitSlop={10}
-          style={styles.iconBtn}
-        >
+        <Pressable testID="saved-back" onPress={() => router.back()} hitSlop={10} style={styles.iconBtn}>
           <Ionicons name="arrow-back" size={20} color={theme.colors.onSurface} />
         </Pressable>
         <View style={{ flex: 1 }}>
@@ -48,7 +44,7 @@ export default function Saved() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 80 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
         {favs.length === 0 ? (
           <View style={styles.empty}>
             <Ionicons name="heart-outline" size={40} color={theme.colors.brand} />
@@ -56,32 +52,37 @@ export default function Saved() {
             <Text style={styles.emptyBody}>Tap the heart on any recipe to keep it here.</Text>
           </View>
         ) : (
-          favs.map((r) => (
-            <Pressable
-              key={r.id}
-              testID={`saved-item-${r.id}`}
-              onPress={() => router.push(`/recipe/${r.id}`)}
-              style={styles.row}
-            >
-              <Image source={r.image} style={styles.thumb} contentFit="cover" />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.rowTitle} numberOfLines={1}>
-                  {r.name}
-                </Text>
-                <Text style={styles.rowSub} numberOfLines={1}>
-                  {r.region} • {r.time} min • {r.spice}
-                </Text>
-              </View>
+          favs.map((r) => {
+            const img = photos[r.id] || r.image;
+            return (
               <Pressable
-                testID={`saved-remove-${r.id}`}
-                onPress={() => remove(r.id)}
-                hitSlop={8}
-                style={styles.removeBtn}
+                key={r.id}
+                testID={`saved-item-${r.id}`}
+                onPress={() => router.push(`/recipe/${r.id}`)}
+                style={styles.row}
               >
-                <Ionicons name="heart" size={16} color={theme.colors.brand} />
+                <View style={styles.thumbWrap}>
+                  <Image source={img} style={styles.thumb} contentFit="cover" />
+                  {photos[r.id] && (
+                    <View style={styles.camTag}>
+                      <Ionicons name="camera" size={10} color="#FFF" />
+                    </View>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rowTitle} numberOfLines={1}>
+                    {r.name}
+                  </Text>
+                  <Text style={styles.rowSub} numberOfLines={1}>
+                    {r.region} • {r.time} min • {r.spice}
+                  </Text>
+                </View>
+                <Pressable testID={`saved-remove-${r.id}`} onPress={() => remove(r.id)} hitSlop={8} style={styles.removeBtn}>
+                  <Ionicons name="heart" size={16} color={theme.colors.brand} />
+                </Pressable>
               </Pressable>
-            </Pressable>
-          ))
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
   iconBtn: {
     width: 44,
@@ -116,20 +117,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 2,
   },
-  title: {
-    fontFamily: "FrauncesBold",
-    fontSize: 28,
-    color: theme.colors.onSurface,
-    letterSpacing: -0.8,
-  },
+  title: { fontFamily: "FrauncesBold", fontSize: 26, color: theme.colors.onSurface, letterSpacing: -0.8 },
   empty: { alignItems: "center", padding: 40, gap: 8 },
   emptyTitle: { fontFamily: "FrauncesBold", fontSize: 20, color: theme.colors.onSurface },
-  emptyBody: {
-    fontFamily: "Geist",
-    fontSize: 13,
-    color: theme.colors.onSurfaceMuted,
-    textAlign: "center",
-  },
+  emptyBody: { fontFamily: "Geist", fontSize: 13, color: theme.colors.onSurfaceMuted, textAlign: "center" },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -141,23 +132,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  thumb: {
-    width: 64,
-    height: 64,
-    borderRadius: theme.radius.sm,
+  thumbWrap: { width: 64, height: 64, borderRadius: theme.radius.sm, overflow: "hidden" },
+  thumb: { width: "100%", height: "100%" },
+  camTag: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: theme.colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  rowTitle: {
-    fontFamily: "FrauncesBold",
-    fontSize: 17,
-    color: theme.colors.onSurface,
-    letterSpacing: -0.3,
-  },
-  rowSub: {
-    fontFamily: "Geist",
-    fontSize: 12,
-    color: theme.colors.onSurfaceMuted,
-    marginTop: 2,
-  },
+  rowTitle: { fontFamily: "FrauncesBold", fontSize: 17, color: theme.colors.onSurface, letterSpacing: -0.3 },
+  rowSub: { fontFamily: "Geist", fontSize: 12, color: theme.colors.onSurfaceMuted, marginTop: 2 },
   removeBtn: {
     width: 40,
     height: 40,

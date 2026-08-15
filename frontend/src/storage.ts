@@ -9,11 +9,25 @@ export type Profile = {
   onboarded: boolean;
 };
 
+export type ShoppingItem = {
+  id: string;
+  name: string;
+  checked: boolean;
+};
+
+export type MenuDay = {
+  day: string;
+  recipeId: string | null;
+};
+
 const KEYS = {
   profile: "ruchio.profile",
   pantry: "ruchio.pantry",
   favorites: "ruchio.favorites",
   aiRecipes: "ruchio.ai_recipes",
+  shopping: "ruchio.shopping",
+  photos: "ruchio.photos",
+  menu: "ruchio.menu",
 };
 
 export const defaultProfile: Profile = {
@@ -48,4 +62,28 @@ export const storage = {
   setFavorites: (f: string[]) => writeJSON(KEYS.favorites, f),
   getAIRecipes: () => readJSON<any[]>(KEYS.aiRecipes, []),
   setAIRecipes: (r: any[]) => writeJSON(KEYS.aiRecipes, r),
+
+  // Shopping list
+  getShopping: () => readJSON<ShoppingItem[]>(KEYS.shopping, []),
+  setShopping: (s: ShoppingItem[]) => writeJSON(KEYS.shopping, s),
+
+  // Recipe photos (recipeId -> local uri)
+  getPhotos: () => readJSON<Record<string, string>>(KEYS.photos, {}),
+  setPhotos: (p: Record<string, string>) => writeJSON(KEYS.photos, p),
+
+  // Weekly menu
+  getMenu: () => readJSON<MenuDay[]>(KEYS.menu, []),
+  setMenu: (m: MenuDay[]) => writeJSON(KEYS.menu, m),
 };
+
+export function mergeShopping(existing: ShoppingItem[], names: string[]): ShoppingItem[] {
+  const lowerExisting = new Set(existing.map((i) => i.name.toLowerCase()));
+  const additions = names
+    .filter((n) => !lowerExisting.has(n.toLowerCase()))
+    .map((n) => ({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: n,
+      checked: false,
+    }));
+  return [...existing, ...additions];
+}

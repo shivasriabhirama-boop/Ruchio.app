@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,8 @@ import {
   TextInput,
   ActivityIndicator,
 } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -19,9 +17,6 @@ import { theme } from "@/src/theme";
 import { storage, Profile, defaultProfile } from "@/src/storage";
 import { PrimaryButton, Chip } from "@/src/ui";
 import { generateAIRecipe, AIRecipe } from "@/src/api";
-
-const HERO =
-  "https://images.unsplash.com/photo-1621494547944-5ddbc84514b2?crop=entropy&cs=srgb&fm=jpg&q=85&w=1400";
 
 const CRAVINGS = ["Comforting", "Spicy", "Quick bite", "Party dish", "Healthy"];
 
@@ -62,7 +57,6 @@ export default function AIChefScreen() {
         craving: freeform.trim() ? freeform.trim() : craving,
       });
       setRecipe(r);
-      // Persist to AI recipes cache for future viewing
       const existing = await storage.getAIRecipes();
       await storage.setAIRecipes([r, ...existing].slice(0, 20));
     } catch (e: any) {
@@ -74,35 +68,30 @@ export default function AIChefScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 160 }} showsVerticalScrollIndicator={false}>
-        <View style={styles.heroWrap}>
-          <Image source={HERO} style={StyleSheet.absoluteFill} contentFit="cover" transition={400} />
-          <LinearGradient
-            colors={["rgba(15,15,15,0.1)", "rgba(15,15,15,0.75)", "rgba(15,15,15,1)"]}
-            locations={[0, 0.55, 1]}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.heroContent}>
-            <View style={styles.badge}>
-              <Ionicons name="sparkles" size={12} color={theme.colors.brand} />
-              <Text style={styles.badgeText}>AI CHEF</Text>
-            </View>
-            <Text style={styles.h1}>
-              A dish{"\n"}
-              <Text style={styles.h1Accent}>invented for tonight.</Text>
-            </Text>
-            <Text style={styles.body}>
-              Ruchio's chef reads your pantry, taste and mood — then improvises one recipe just for you.
-            </Text>
-          </View>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.topBar}>
+        <Pressable testID="ai-back" onPress={() => router.back()} hitSlop={10} style={styles.iconBtn}>
+          <Ionicons name="arrow-back" size={20} color={theme.colors.onSurface} />
+        </Pressable>
+        <View style={styles.badge}>
+          <Ionicons name="sparkles" size={12} color={theme.colors.onBrand} />
+          <Text style={styles.badgeText}>AI CHEF</Text>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+        <View style={styles.hero}>
+          <Text style={styles.h1}>
+            A dish invented{"\n"}
+            <Text style={styles.h1Accent}>for tonight.</Text>
+          </Text>
+          <Text style={styles.body}>
+            Ruchio’s chef reads your pantry, taste and mood — then improvises one recipe just for you.
+          </Text>
         </View>
 
         <Text style={styles.label}>Your vibe</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipRow}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
           {CRAVINGS.map((c) => (
             <Chip
               key={c}
@@ -117,30 +106,22 @@ export default function AIChefScreen() {
           ))}
         </ScrollView>
 
-        <View style={styles.inputBlock}>
-          <Text style={styles.label}>Or describe it (optional)</Text>
-          <TextInput
-            testID="ai-chef-freeform"
-            value={freeform}
-            onChangeText={setFreeform}
-            placeholder="e.g. Something warm and Bengali"
-            placeholderTextColor={theme.colors.onSurfaceFaint}
-            style={styles.textArea}
-            multiline
-          />
-        </View>
+        <Text style={styles.label}>Or describe it (optional)</Text>
+        <TextInput
+          testID="ai-chef-freeform"
+          value={freeform}
+          onChangeText={setFreeform}
+          placeholder="e.g. Something warm and Bengali"
+          placeholderTextColor={theme.colors.onSurfaceFaint}
+          style={styles.textArea}
+          multiline
+        />
 
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <Ionicons name="basket-outline" size={16} color={theme.colors.brand} />
-            <Text style={styles.summaryText}>
-              {pantry.length ? `${pantry.length} pantry items` : "Pantry empty"}
-            </Text>
-            <Pressable
-              testID="ai-open-pantry"
-              onPress={() => router.push("/(tabs)/pantry")}
-              style={styles.summaryLink}
-            >
+            <Text style={styles.summaryText}>{pantry.length ? `${pantry.length} pantry items` : "Pantry empty"}</Text>
+            <Pressable testID="ai-open-pantry" onPress={() => router.push("/(tabs)/pantry")} style={styles.summaryLink}>
               <Text style={styles.summaryLinkText}>Edit</Text>
             </Pressable>
           </View>
@@ -184,7 +165,7 @@ export default function AIChefScreen() {
 
         {recipe && (
           <View testID="ai-chef-result" style={styles.result}>
-            <Text style={styles.resultEyebrow}>Chef's Special</Text>
+            <Text style={styles.resultEyebrow}>Chef’s Special</Text>
             <Text style={styles.resultTitle}>{recipe.name}</Text>
             <Text style={styles.resultTagline}>{recipe.tagline}</Text>
             <View style={styles.metaRow}>
@@ -229,64 +210,49 @@ function MetaPill({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: 
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.surface },
-  heroWrap: { height: 280, overflow: "hidden" },
-  heroContent: {
-    ...StyleSheet.absoluteFillObject,
-    padding: 24,
-    justifyContent: "flex-end",
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 6,
+  },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.surface2,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    alignItems: "center",
+    justifyContent: "center",
   },
   badge: {
-    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    height: 30,
     borderRadius: theme.radius.pill,
-    backgroundColor: "rgba(15,15,15,0.6)",
-    borderWidth: 1,
-    borderColor: "rgba(255,159,28,0.6)",
-    marginBottom: 12,
+    backgroundColor: theme.colors.brand,
   },
-  badgeText: {
-    fontFamily: "GeistBold",
-    fontSize: 10,
-    color: theme.colors.brand,
-    letterSpacing: 1.3,
-  },
-  h1: {
-    fontFamily: "FrauncesBold",
-    fontSize: 40,
-    lineHeight: 42,
-    color: theme.colors.onSurface,
-    letterSpacing: -1.2,
-    marginBottom: 12,
-  },
-  h1Accent: {
-    fontFamily: "FrauncesItalic",
-    color: theme.colors.brand,
-  },
-  body: {
-    fontFamily: "Geist",
-    fontSize: 14,
-    lineHeight: 20,
-    color: theme.colors.onSurfaceMuted,
-  },
+  badgeText: { fontFamily: "GeistBold", fontSize: 10, color: theme.colors.onBrand, letterSpacing: 1.3 },
+  hero: { paddingHorizontal: 24, paddingTop: 14 },
+  h1: { fontFamily: "FrauncesBold", fontSize: 40, lineHeight: 42, color: theme.colors.onSurface, letterSpacing: -1.2, marginBottom: 12 },
+  h1Accent: { fontFamily: "FrauncesItalic", color: theme.colors.brand },
+  body: { fontFamily: "Geist", fontSize: 15, lineHeight: 22, color: theme.colors.onSurfaceMuted },
   label: {
     fontFamily: "GeistMedium",
     fontSize: 11,
     letterSpacing: 1.5,
     color: theme.colors.onSurfaceFaint,
     textTransform: "uppercase",
-    marginTop: 24,
+    marginTop: 26,
     marginBottom: 10,
     paddingHorizontal: 24,
   },
-  chipRow: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  inputBlock: {},
+  chipRow: { paddingHorizontal: 20, gap: 8 },
   textArea: {
     marginHorizontal: 20,
     minHeight: 80,
@@ -310,17 +276,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     gap: 12,
   },
-  summaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  summaryText: {
-    flex: 1,
-    fontFamily: "GeistMedium",
-    fontSize: 13,
-    color: theme.colors.onSurface,
-  },
+  summaryRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  summaryText: { flex: 1, fontFamily: "GeistMedium", fontSize: 13, color: theme.colors.onSurface },
   summaryLink: {
     paddingHorizontal: 12,
     height: 30,
@@ -330,18 +287,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  summaryLinkText: {
-    fontFamily: "GeistBold",
-    fontSize: 11,
-    color: theme.colors.brand,
-    letterSpacing: 0.8,
-  },
+  summaryLinkText: { fontFamily: "GeistBold", fontSize: 11, color: theme.colors.brand, letterSpacing: 0.8 },
   errorBox: {
     marginHorizontal: 20,
     marginTop: 16,
     padding: 12,
     borderRadius: theme.radius.md,
-    backgroundColor: "rgba(239,75,75,0.1)",
+    backgroundColor: theme.colors.errorTint,
     borderWidth: 1,
     borderColor: theme.colors.error,
     flexDirection: "row",
@@ -366,25 +318,9 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 6,
   },
-  resultTitle: {
-    fontFamily: "FrauncesBold",
-    fontSize: 28,
-    color: theme.colors.onSurface,
-    letterSpacing: -0.6,
-    lineHeight: 32,
-  },
-  resultTagline: {
-    fontFamily: "FrauncesItalic",
-    fontSize: 15,
-    color: theme.colors.onSurfaceMuted,
-    marginTop: 6,
-  },
-  metaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 14,
-  },
+  resultTitle: { fontFamily: "FrauncesBold", fontSize: 28, color: theme.colors.onSurface, letterSpacing: -0.6, lineHeight: 32 },
+  resultTagline: { fontFamily: "FrauncesItalic", fontSize: 15, color: theme.colors.onSurfaceMuted, marginTop: 6 },
+  metaRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 },
   metaPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -396,11 +332,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface3,
   },
-  metaText: {
-    fontFamily: "GeistMedium",
-    fontSize: 11,
-    color: theme.colors.onSurface,
-  },
+  metaText: { fontFamily: "GeistMedium", fontSize: 11, color: theme.colors.onSurface },
   sub: {
     fontFamily: "GeistBold",
     fontSize: 12,
@@ -410,24 +342,10 @@ const styles = StyleSheet.create({
     marginTop: 22,
     marginBottom: 10,
   },
-  ingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 6,
-  },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.colors.brand,
-  },
+  ingRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 },
+  bullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.brand },
   ingText: { fontFamily: "Geist", fontSize: 14, color: theme.colors.onSurface, flex: 1 },
-  stepRow: {
-    flexDirection: "row",
-    gap: 12,
-    paddingVertical: 8,
-  },
+  stepRow: { flexDirection: "row", gap: 12, paddingVertical: 8 },
   stepNum: {
     width: 26,
     height: 26,
@@ -436,16 +354,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stepNumText: {
-    fontFamily: "GeistBold",
-    fontSize: 12,
-    color: theme.colors.onBrand,
-  },
-  stepText: {
-    flex: 1,
-    fontFamily: "Geist",
-    fontSize: 14,
-    lineHeight: 21,
-    color: theme.colors.onSurface,
-  },
+  stepNumText: { fontFamily: "GeistBold", fontSize: 12, color: theme.colors.onBrand },
+  stepText: { flex: 1, fontFamily: "Geist", fontSize: 14, lineHeight: 21, color: theme.colors.onSurface },
 });

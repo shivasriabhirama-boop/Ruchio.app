@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { BlurView } from "expo-blur";
 import { theme } from "./theme";
 
 export const RUCHIO_TAGLINE = "Smart Kitchen Companion";
 
-export function Wordmark({ size = 44, tone = "brand" as "brand" | "light" }) {
+export function Wordmark({ size = 44, tone = "brand" as "brand" | "ink" }) {
   const color = tone === "brand" ? theme.colors.brand : theme.colors.onSurface;
   return (
     <Text
@@ -68,8 +67,8 @@ export function PrimaryButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.primaryBtn,
-        pressed && { opacity: 0.85 },
-        disabled && { opacity: 0.4 },
+        pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] },
+        disabled && { opacity: 0.45 },
       ]}
     >
       {icon}
@@ -101,14 +100,8 @@ export function GhostButton({
   );
 }
 
-export function GlassCard({ children, style }: { children: React.ReactNode; style?: any }) {
-  return (
-    <View style={[styles.glassWrap, style]}>
-      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
-      <View style={styles.glassBg} />
-      <View style={{ padding: theme.spacing.lg }}>{children}</View>
-    </View>
-  );
+export function Card({ children, style }: { children: React.ReactNode; style?: any }) {
+  return <View style={[styles.card, style]}>{children}</View>;
 }
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -150,9 +143,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.brand,
     paddingHorizontal: 20,
     shadowColor: theme.colors.brand,
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.28,
     shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   primaryBtnText: {
     fontFamily: "GeistBold",
@@ -178,15 +172,12 @@ const styles = StyleSheet.create({
     color: theme.colors.onSurface,
     letterSpacing: 0.3,
   },
-  glassWrap: {
+  card: {
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    overflow: "hidden",
-  },
-  glassBg: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(23,23,23,0.75)",
+    backgroundColor: theme.colors.surface2,
+    padding: theme.spacing.lg,
   },
   sectionLabel: {
     fontFamily: "GeistBold",
